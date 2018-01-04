@@ -157,7 +157,7 @@ PendSV_Handler:
    mov r0,lr
    push {r0}
 
-   bl cortexM4UpdateActiveTaskContextPtr
+   bl cortexM0UpdateActiveTaskContextPtr
 
    pop {r0}
    mov lr,r0

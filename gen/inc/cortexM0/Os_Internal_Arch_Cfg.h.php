@@ -43,8 +43,8 @@
  ** This file content the internal generated architecture dependent
  ** configuration of FreeOSEK.
  **
- ** \file cortexM4/Os_Internal_Arch_Cfg.h
- ** \arch cortexM4
+ ** \file cortexM0/Os_Internal_Arch_Cfg.h
+ ** \arch cortexM0
  **/
 
 /** \addtogroup FreeOSEK
