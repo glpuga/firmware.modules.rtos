@@ -3,6 +3,7 @@
  ********************************************************/
 
 /* Copyright 2014, 2015 Pablo Ridolfi (UTN-FRBA)
+ * Copyright 2018, Gerardo Puga (UNLP)
  * All rights reserved.
  *
  * This file is part of CIAA Firmware.
