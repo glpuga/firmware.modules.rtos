@@ -55,7 +55,6 @@
 
 
 
-
 /*==================[macros and definitions]=================================*/
 
 
@@ -68,17 +67,15 @@
 
 
 
-void *Osek_NewTaskPtr_Arch;
-void *Osek_OldTaskPtr_Arch;
-
-
-
 /*==================[internal data definition]===============================*/
 
 
 
-TaskType TerminatingTask = INVALID_TASK;
-TaskType WaitingTask = INVALID_TASK;
+TaskType cortexM0TerminatedTaskID = INVALID_TASK;
+
+TaskContextType cortexM0NullContext;
+
+TaskContextRefType *cortexM0ActiveContextPtr = &cortexM0NullContext;
 
 
 
@@ -94,7 +91,7 @@ TaskType WaitingTask = INVALID_TASK;
 
 
 
-void ReturnHook_Arch(void)
+void cortexM0ReturnHook(void)
 {
    /*
     * Tasks shouldn't return here...
@@ -113,26 +110,8 @@ void ReturnHook_Arch(void)
 
 
 
-void CheckTerminatingTask_Arch(void)
-{
-   /*
-    * If there is task being terminated, destroy its context information and
-    * reset its state so that the next time that the task is activated it
-    * starts its execution on the first instruction of the task body.
-    * */
-
-   if(TerminatingTask != INVALID_TASK)
-   {
-      InitStack_Arch(TerminatingTask);
-   }
-
-   TerminatingTask = INVALID_TASK;
-}
-
-
-
 /* Task Stack Initialization */
-void InitStack_Arch(uint8 TaskID)
+void cortexM0ResetTaskContext(uint8 TaskID)
 {
    uint32_t *taskStackRegionPtr;
    int32_t taskStackSizeWords;
@@ -244,6 +223,20 @@ void InitStack_Arch(uint8 TaskID)
 
    *(TasksConst[TaskID].TaskContext) = &(taskStackRegionPtr[taskStackSizeWords - 17]);
 
+}
+
+
+
+void cortexM0UpdateActiveTaskContextPtr()
+{
+   if (cortexM0TerminatedTaskID != INVALID_TASK)
+   {
+      cortexM0ResetTaskContext(cortexM0TerminatedTaskID);
+
+      cortexM0TerminatedTaskID = INVALID_TASK;
+   }
+
+   cortexM0ActiveContextPtr = TasksConst[RunningTask].TaskContext;
 }
 
 

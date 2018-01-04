@@ -95,17 +95,23 @@ void StartOs_Arch_Cpu(void)
 
 void StartOs_Arch(void)
 {
-   uint8f loopi;
+   uint8 loopi;
 
-   /* Initialize all the application tasks. */
+   /*
+    * Set the the stacks of all the tasks to an initialized
+    * state.
+    * */
+
    for( loopi = 0; loopi < TASKS_COUNT; loopi++)
    {
-      InitStack_Arch(loopi);
+      ResetStack_Arch(loopi);
    }
 
-   /* CPU dependent initialization. */
-   StartOs_Arch_Cpu();
+   /*
+    * CPU dependent initialization
+    * */
 
+   StartOs_Arch_Cpu();
 }
 
 

@@ -100,22 +100,18 @@
  ** If a background task is configured by the user (a full preemptive task
  ** with lower priority and which never ends) this macro will never be called.
  ** In other case the macro will be called any time that the OS has nothing
- ** else to execute. The macro will put the cpu in a low-power mode
- ** to reduce power consumption until a wake-up event (an interrupt, for
- ** example) brings the system back up.
+ ** else to execute. The macro may sleep the cpu for a short time to avoid
+ ** over heating and full power consumption or may halt the processor always
+ ** that all wake-up reasons are right configured. If nothing is running
+ ** nothing my activate any task so we will keep sleeping until anything
+ ** occurs, like for example an interrupt.
  **
  **/
 #define osekpause()                             { __asm volatile("wfi"); }
 
 
-/** \brief Call to an other Task
- **
- ** This function jmps to the indicated task.
- **/
-#define CallTask(actualtask, nexttask)                                        \
+#define InvokePendSV()                                                        \
 {                                                                             \
-   Osek_OldTaskPtr_Arch = (void*)TasksConst[(actualtask)].TaskContext;        \
-   Osek_NewTaskPtr_Arch = (void*)TasksConst[(nexttask)].TaskContext;          \
    __asm__ __volatile__ (                                                     \
       /* Call PendSV */                                                       \
       "push {r0-r2}                                               \n\t"       \
@@ -126,76 +122,38 @@
       "orr r1,r2                                                  \n\t"       \
       "str r1,[r0]                                                \n\t"       \
       "pop {r0-r2}                                                \n\t"       \
-   );                                                                         \
+   );
 }
 
 
-/** \brief Jmp to an other Task
- **
- ** This function jmps to the indicated task.
+/** \brief CortexM0 implementation of the CallTask() OS interface.
  **/
-#define JmpTask(task)                                                         \
-{                                                                             \
-   extern TaskType WaitingTask;                                               \
-   if(WaitingTask != INVALID_TASK)                                            \
-   {                                                                          \
-      Osek_OldTaskPtr_Arch = (void*)TasksConst[WaitingTask].TaskContext;      \
-      WaitingTask = INVALID_TASK;                                             \
-   }                                                                          \
-   else                                                                       \
-   {                                                                          \
-      Osek_OldTaskPtr_Arch = (void*)0;                                        \
-   }                                                                          \
-   Osek_NewTaskPtr_Arch = (void*)TasksConst[(task)].TaskContext;              \
-   __asm__ __volatile__ (                                                     \
-      /* Call PendSV */                                                       \
-      "push {r0-r2}                                               \n\t"       \
-      /* Activate bit PENDSVSET in Interrupt Control State Register (ICSR) */ \
-      "ldr r0,=0xE000ED04                                         \n\t"       \
-      "ldr r1,[r0]                                                \n\t"       \
-      "ldr r2,=(1<<28)                                            \n\t"       \
-      "orr r1,r2                                                  \n\t"       \
-      "str r1,[r0]                                                \n\t"       \
-      "pop {r0-r2}                                                \n\t"       \
-   );                                                                         \
+#define CallTask(currentTask, nextTask)         { InvokePendSV(); }
+
+
+/** \brief CortexM0 implementation of the JmpTask() OS interface.
+ **/
+#define JmpTask(nextTask)                       { InvokePendSV(); }
+
+
+/** \brief CortexM0 implementation of the SaveContext() OS interface.
+ */
+#define SaveContext(task)                       {   }
+
+
+/** \brief CortexM0 implementation of the ResetStack() OS interface.
+ */
+#define ResetStack_Arch(taskId)                 \
+{                                               \
+   cortexM0ResetTaskContext(taskId);            \
 }
 
 
-/** \brief Save context */
-#define SaveContext(task)                                                     \
-{                                                                             \
-   extern TaskType WaitingTask;                                               \
-   if(TasksVar[GetRunningTask()].Flags.State == TASK_ST_WAITING)              \
-   {                                                                          \
-      WaitingTask = GetRunningTask();                                         \
-   }                                                                          \
-   flag = 0;                                                                  \
-   /* remove of the Ready List */                                             \
-   RemoveTask(GetRunningTask());                                              \
-   /* set system context */                                                   \
-   SetActualContext(CONTEXT_SYS);                                             \
-   /* set running task to invalid */                                          \
-   SetRunningTask(INVALID_TASK);                                              \
-   /* finish cirtical code */                                                 \
-   IntSecure_End();                                                           \
-   /* call scheduler */                                                       \
-   Schedule();                                                                \
-   /* add this call in order to maintain counter balance when returning */    \
-   IntSecure_Start();                                                         \
-}
-
-
-/** \brief */
-#define ResetStack(task)                                                      \
-{                                                                             \
-   TerminatingTask = (task);                                                  \
-}
-
-
-/** \brief Set the entry point for a task */
-#define SetEntryPoint(task)                                                   \
-{                                                                             \
-   TerminatingTask = (task);                                                  \
+/** \brief CortexM0 implementation of the SenEntryPoint() OS interface.
+ **/
+#define SetEntryPoint(taskId)          \
+{                                      \
+   cortexM0TerminatedTaskID = taskId;  \
 }
 
 
@@ -277,11 +235,7 @@
 
 
 
-extern void * Osek_OldTaskPtr_Arch;
-
-extern void * Osek_NewTaskPtr_Arch;
-
-extern TaskType TerminatingTask;
+extern TaskType cortexM0TerminatedTaskID;
 
 
 
@@ -289,7 +243,7 @@ extern TaskType TerminatingTask;
 
 
 
-void InitStack_Arch(uint8 TaskID);
+void cortexM0ResetTaskContext(uint8 TaskID);
 
 
 

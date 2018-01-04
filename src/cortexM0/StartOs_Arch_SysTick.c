@@ -107,7 +107,6 @@ void StartOs_Arch_SysTick(void)
 
 
 
-
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */

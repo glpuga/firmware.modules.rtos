@@ -48,16 +48,31 @@
  /** \addtogroup FreeOSEK_Os_Internal
   ** @{ */
 
+
+
  /*==================[inclusions]=============================================*/
+
+
 
  /*==================[macros]=================================================*/
 
+
+
  /*==================[typedef]================================================*/
+
+
 
  /*==================[external data declaration]==============================*/
 
+
+
  /*==================[external functions declaration]=========================*/
- void StartOs_Arch_SysTick(void);
+
+
+
+void StartOs_Arch_SysTick(void);
+
+
 
  /** @} doxygen end group definition */
  /** @} doxygen end group definition */

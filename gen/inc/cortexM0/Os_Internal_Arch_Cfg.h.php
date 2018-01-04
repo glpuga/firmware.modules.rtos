@@ -56,21 +56,39 @@
 
 /*==================[inclusions]=============================================*/
 
+
+
 /*==================[typedef]================================================*/
 
+
+
 /** \brief Task Context Type */
-typedef uint32 * TaskContextType;
+typedef struct {
+
+   uint32 *stackTopPointer;
+
+} TaskContextType;
 
 /** \brief Task Context Type */
 typedef TaskContextType* TaskContextRefType;
 
+
+
 /*==================[external data declaration]==============================*/
+
+
 
 /*==================[external functions declaration]=========================*/
 
+
+
 void Enable_User_ISRs(void);
+
 void Enable_ISR2_Arch(void);
+
 void Disable_ISR2_Arch(void);
+
+
 
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
